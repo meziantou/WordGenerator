@@ -16,6 +16,9 @@ namespace WordGenerator
             {
                 command.HelpOption("-?|-h|--help");
                 var pathArg = command.Argument("[path]", "Path to the file that contains words");
+                var orderOptions = command.Option("--order <ORDER>", "order of Markov model", CommandOptionType.SingleValue);
+                var lengthOptions = command.Option("--length <LENGTH>", "length of the words to generate", CommandOptionType.SingleValue);
+                var countOptions = command.Option("--count <COUNT>", "number of words to generate", CommandOptionType.SingleValue);
 
                 command.OnExecute(() =>
                 {
@@ -27,6 +30,27 @@ namespace WordGenerator
                     }
 
                     var generator = new WordGenerator();
+                    if (orderOptions.HasValue())
+                    {
+                        int order;
+                        if (int.TryParse(orderOptions.Value(), out order))
+                        {
+                            generator.Order = order;
+                        }
+                    }
+
+                    int length;
+                    int count;
+                    if (!int.TryParse(lengthOptions.Value(), out length))
+                    {
+                        length = 7;
+                    }
+
+                    if (!int.TryParse(countOptions.Value(), out count))
+                    {
+                        count = 10;
+                    }
+
                     using (var reader = new StreamReader(path))
                     {
                         string line;
@@ -36,9 +60,9 @@ namespace WordGenerator
                         }
                     }
 
-                    for (int j = 0; j < 100; j++)
+                    for (int j = 0; j < count; j++)
                     {
-                        Console.WriteLine(generator.Generate(7));
+                        Console.WriteLine(generator.Generate(length));
                     }
 
                     return 0;

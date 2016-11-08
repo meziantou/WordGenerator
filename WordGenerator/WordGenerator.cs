@@ -6,17 +6,17 @@ namespace WordGenerator
 {
     public class WordGenerator
     {
-        private const char DefaultChar = '\0';
-
         private bool _sorted = false;
-        private Random _random = new Random();
-        private readonly IDictionary<char, WeightCollection<char>> _weights = new Dictionary<char, WeightCollection<char>>();
+        private readonly Random _random = new Random();
+        private readonly IDictionary<string, WeightCollection<char>> _weights = new Dictionary<string, WeightCollection<char>>();
+
+        public int Order { get; set; } = 5;
 
         public void AddWord(string word)
         {
             _sorted = false;
 
-            char previous = DefaultChar;
+            string previous = "";
             foreach (var c in word.Select(char.ToLowerInvariant))
             {
                 WeightCollection<char> weight;
@@ -27,7 +27,11 @@ namespace WordGenerator
                 }
 
                 weight.Add(c);
-                previous = c;
+                previous += c;
+                if (previous.Length > Order)
+                {
+                    previous = previous.Substring(1);
+                }
             }
         }
 
@@ -43,18 +47,23 @@ namespace WordGenerator
                 _sorted = true;
             }
 
-            char previousChar = DefaultChar;
+            string previousChar = "";
             string result = null;
             for (int i = 0; i < length; i++)
             {
-                previousChar = Random(previousChar);
-                result += previousChar;
+                char generated = Random(previousChar);
+                previousChar += generated;
+                if (previousChar.Length > Order)
+                {
+                    previousChar = previousChar.Substring(1);
+                }
+                result += generated;
             }
 
             return result;
         }
 
-        private char Random(char previousChar)
+        private char Random(string previousChar)
         {
             WeightCollection<char> weight;
             if (_weights.TryGetValue(previousChar, out weight))
@@ -67,6 +76,11 @@ namespace WordGenerator
 
                     randomValue -= item.Weight;
                 }
+            }
+
+            if (previousChar.Length > 0)
+            {
+                return Random(previousChar.Substring(1));
             }
 
             throw new ArgumentException($"Char '{previousChar}' is not expected.");
